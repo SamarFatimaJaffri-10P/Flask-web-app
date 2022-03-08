@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -19,7 +19,7 @@ def hello():
     return 'Hello World!'
 
 
-@app.route("/add")
+@app.route('/add')
 def add_book():
     name = request.args.get('name')
     author = request.args.get('author')
@@ -37,7 +37,7 @@ def add_book():
         return str(e)
 
 
-@app.route("/getall")
+@app.route('/getall')
 def get_all():
     try:
         books = Book.query.all()
@@ -46,13 +46,33 @@ def get_all():
         return str(e)
 
 
-@app.route("/get/<id_>")
+@app.route('/get/<id_>')
 def get_by_id(id_):
     try:
         book = Book.query.filter_by(id=id_).first()
         return jsonify(book.serialize())
     except Exception as e:
         return str(e)
+
+
+@app.route('/add/form', methods=['GET', 'POST'])
+def add_book_form():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        author = request.form.get('author')
+        published = request.form.get('published')
+        try:
+            book = Book(
+                name=name,
+                author=author,
+                published=published
+            )
+            db.session.add(book)
+            db.session.commit()
+            return f'Book added. book id={book.id}'
+        except Exception as e:
+            return str(e)
+    return render_template('getdata.html')
 
 
 if __name__ == '__main__':
